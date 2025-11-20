@@ -28,10 +28,10 @@ jobs:
           mkdir -p out
           javac -d out $(find . -name "*.java")
 
-      # Step 4: Run the main class (replace Main with your class name)
+      # Step 4: Run the main class 
       - name: Run Java Program
         run: |
-          java -cp out Main
+          java -cp out Test
 
       # Step 5: Basic HTML check
       - name: Check HTML files
