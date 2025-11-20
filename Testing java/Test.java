@@ -3,5 +3,6 @@ public class Test {
         System.out.println("Hello World");
         System.out.println("Checking pull request");
         System.out.println("Merge message 2");
+        System.out.println("Merge conf 33");
     }
 }
