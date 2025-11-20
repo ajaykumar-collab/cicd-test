@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: openjdk:11
+       image: eclipse-temurin:11
 
     steps:
       # Step 1: Checkout code
