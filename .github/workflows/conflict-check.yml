@@ -1,47 +1,45 @@
-name: Check Merge Conflicts
+name: Detect Merge Conflicts
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
-  detect-conflict:
+  check-conflict:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Check if PR has merge conflicts
-        id: check
+      - name: Get PR mergeability
+        id: pr
         run: |
           pr_number=${{ github.event.pull_request.number }}
           repo=${{ github.repository }}
 
-          echo "Checking merge status for PR #$pr_number"
+          echo "Checking mergeability for PR #$pr_number"
+
+          # Wait briefly because mergeable = null at first
+          sleep 3
 
           response=$(curl -s \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/$repo/pulls/$pr_number)
 
-          echo "$response" > response.json
-
-          mergeable=$(jq -r '.mergeable' response.json)
+          echo "$response" > pr.json
+          mergeable=$(jq -r '.mergeable' pr.json)
 
           echo "mergeable=$mergeable"
+          echo "mergeable=$mergeable" >> $GITHUB_OUTPUT
 
-          echo "mergeable_state=$mergeable" >> $GITHUB_OUTPUT
-
-      - name: Create text file if conflict exists
-        if: steps.check.outputs.mergeable_state == 'false'
+      - name: Create conflict file
+        if: steps.pr.outputs.mergeable == 'false'
         run: |
           echo "merge conflict occurs" > merge_conflict.txt
           echo "Created merge_conflict.txt"
 
-      - name: Upload artifact
-        if: steps.check.outputs.mergeable_state == 'false'
+      - name: Upload Artifact
+        if: steps.pr.outputs.mergeable == 'false'
         uses: actions/upload-artifact@v3
         with:
-          name: merge-conflict-file
+          name: merge-conflict
           path: merge_conflict.txt
