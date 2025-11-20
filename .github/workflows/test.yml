@@ -1,0 +1,4 @@
+name: Test project
+
+on:
+  pull_request
