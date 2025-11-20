@@ -1,23 +1,22 @@
-name: Detect Merge Conflicts
+name: Conflict Pipeline
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
-  check-conflict:
+  conflict-job:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Get PR mergeability
-        id: pr
+
+      - name: Check for merge conflicts
+        id: conflict-check
         run: |
           pr_number=${{ github.event.pull_request.number }}
           repo=${{ github.repository }}
 
           echo "Checking mergeability for PR #$pr_number"
-
-          # Wait briefly because mergeable = null at first
           sleep 3
 
           response=$(curl -s \
@@ -31,15 +30,22 @@ jobs:
           echo "mergeable=$mergeable"
           echo "mergeable=$mergeable" >> $GITHUB_OUTPUT
 
-      - name: Create conflict file
-        if: steps.pr.outputs.mergeable == 'false'
+      # 🟢 This step runs ONLY IF conflict exists
+      - name: Run conflict operations
+        if: steps.conflict-check.outputs.mergeable == 'false'
         run: |
           echo "merge conflict occurs" > merge_conflict.txt
-          echo "Created merge_conflict.txt"
+          echo "Created merge_conflict.txt during conflict"
 
-      - name: Upload Artifact
-        if: steps.pr.outputs.mergeable == 'false'
+      # 🟢 Upload artifact ONLY IF conflict exists
+      - name: Upload conflict file
+        if: steps.conflict-check.outputs.mergeable == 'false'
         uses: actions/upload-artifact@v3
         with:
           name: merge-conflict
           path: merge_conflict.txt
+
+      # ❌ This step runs ONLY IF NO conflict
+      - name: No conflict — skip pipeline
+        if: steps.conflict-check.outputs.mergeable == 'true'
+        run: echo "No conflict — stopping conflict pipeline"
