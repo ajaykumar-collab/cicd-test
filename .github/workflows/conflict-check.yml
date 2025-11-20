@@ -40,7 +40,7 @@ jobs:
       # 🟢 Upload artifact ONLY IF conflict exists
       - name: Upload conflict file
         if: steps.conflict-check.outputs.mergeable == 'false'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: merge-conflict
           path: merge_conflict.txt
